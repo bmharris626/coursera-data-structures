@@ -14,7 +14,7 @@ class QueryProcessor:
     def __init__(self, bucket_count):
         self.bucket_count = bucket_count
         # store all strings in one list
-        self.elems = [list()] * bucket_count
+        self.elems = [list() for i in range(bucket_count)] 
 
     def _hash_func(self, s):
         ans = 0
@@ -25,32 +25,35 @@ class QueryProcessor:
     def read_query(self):
         return Query(input().split())
 
+    def _has_key(self, O):
+        L = self.elems[self._hash_func(O)]
+        for v in L:
+            if v == O: return "yes"
+        return "no"
+    
+    def _get(self, O, L):
+        for i, v in enumerate(L):
+            if v == O: return i
+        return -1
+    
+    def _set(self, O):
+        L = self.elems[self._hash_func(O)]
+        for v in L:
+            if v == O: return
+        L.insert(0, O)
+    
     def process_query(self, query):
         if query.type == "check":
             print(' '.join(self.elems[query.ind]))            
         if query.type == "add":
-            hsh = self._hash_func(query.s)
-            not_exists = True
-            for i, elem in enumerate(self.elems[hsh]):
-                if elem == query.s:
-                    self.elems[hsh][i] = query.s
-                    not_exists = False
-                    break
-            if not_exists: self.elems[hsh].insert(0, query.s)
+            self._set(query.s)
         if query.type == "del":
-            hsh = self._hash_func(query.s)
-            for i, elem in enumerate(self.elems[hsh]):
-                if elem == query.s: 
-                    self.elems[hsh].pop(i)
-                    break
+            L = self.elems[self._hash_func(query.s)]
+            if not L: return
+            i = self._get(query.s, L)
+            if i >= 0: L.pop(i)
         if query.type == "find":
-            hsh = self._hash_func(query.s)
-            response = "no"
-            for elem in self.elems[hsh]:
-                if elem == query.s: 
-                    response = "yes"
-                    break
-            print(response) 
+            print(self._has_key(query.s))
 
     def process_queries(self):
         n = int(input())
